@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>華語繞口令大挑戰</title>
+    
+    <!-- 引入 React 和 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 引入 Babel 用來解析 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 定義動畫樣式 -->
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- 圖示組件 (SVG) ---
+        const Icons = {
+            ChevronRight: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            ),
+            ChevronLeft: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            ),
+            Eye: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            ),
+            EyeOff: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+            ),
+            RotateCcw: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            ),
+            Trophy: ({ size = 24, fill = "none" }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            ),
+            Info: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            ),
+            Mic: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg>
+            )
+        };
+
+        // --- 資料 ---
+        const levels = [
+            {
+                id: 1,
+                title: "Level 1: 熱身準備",
+                focus: "b / p / t (送氣 vs 不送氣)",
+                description: "嘴唇的爆破音練習，注意氣流的強弱。",
+                content: [
+                { char: "吃", pinyin: "chī" }, { char: "葡", pinyin: "pú" }, { char: "萄", pinyin: "táo" }, { char: "不", pinyin: "bù" }, { char: "吐", pinyin: "tǔ" }, { char: "葡", pinyin: "pú" }, { char: "萄", pinyin: "táo" }, { char: "皮", pinyin: "pí" }, { char: "，", pinyin: "" },
+                { char: "不", pinyin: "bù" }, { char: "吃", pinyin: "chī" }, { char: "葡", pinyin: "pú" }, { char: "萄", pinyin: "táo" }, { char: "倒", pinyin: "dào" }, { char: "吐", pinyin: "tǔ" }, { char: "葡", pinyin: "pú" }, { char: "萄", pinyin: "táo" }, { char: "皮", pinyin: "pí" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Level 2: 捲舌音挑戰",
+                focus: "h / sh / s (舌頭捲起來 vs 放平)",
+                description: "區分捲舌音(sh)與舌根音(h)、平舌音(s)。",
+                content: [
+                { char: "和", pinyin: "hé" }, { char: "尚", pinyin: "shàng" }, { char: "端", pinyin: "duān" }, { char: "湯", pinyin: "tāng" }, { char: "上", pinyin: "shàng" }, { char: "塔", pinyin: "tǎ" }, { char: "，", pinyin: "" },
+                { char: "塔", pinyin: "tǎ" }, { char: "滑", pinyin: "huá" }, { char: "湯", pinyin: "tāng" }, { char: "撒", pinyin: "sǎ" }, { char: "湯", pinyin: "tāng" }, { char: "燙", pinyin: "tàng" }, { char: "塔", pinyin: "tǎ" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Level 3: ㄘ與ㄊ",
+                focus: "c / t (ㄘ Ci vs ㄊ Te)",
+                description: "舌尖前音與舌尖中音的對抗。",
+                content: [
+                { char: "山", pinyin: "shān" }, { char: "前", pinyin: "qián" }, { char: "有", pinyin: "yǒu" }, { char: "個", pinyin: "gè" }, { char: "崔", pinyin: "cuī" }, { char: "腿", pinyin: "tuǐ" }, { char: "粗", pinyin: "cū" }, { char: "，", pinyin: "" },
+                { char: "山", pinyin: "shān" }, { char: "後", pinyin: "hòu" }, { char: "有", pinyin: "yǒu" }, { char: "個", pinyin: "gè" }, { char: "崔", pinyin: "cuī" }, { char: "粗", pinyin: "cū" }, { char: "腿", pinyin: "tuǐ" }, { char: "。", pinyin: "" },
+                { char: "不", pinyin: "bù" }, { char: "知", pinyin: "zhī" }, { char: "道", pinyin: "dào" }, { char: "是", pinyin: "shì" }, { char: "崔", pinyin: "cuī" }, { char: "粗", pinyin: "cū" }, { char: "腿", pinyin: "tuǐ" }, { char: "的", pinyin: "de" }, { char: "腿", pinyin: "tuǐ" }, { char: "粗", pinyin: "cū" }, { char: "，", pinyin: "" },
+                { char: "還", pinyin: "hái" }, { char: "是", pinyin: "shì" }, { char: "崔", pinyin: "cuī" }, { char: "腿", pinyin: "tuǐ" }, { char: "粗", pinyin: "cū" }, { char: "的", pinyin: "de" }, { char: "腿", pinyin: "tuǐ" }, { char: "粗", pinyin: "cū" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 4,
+                title: "Level 4: 大魔王來了",
+                focus: "s / sh (ㄙ Si vs ㄕ Shi)",
+                description: "平捲舌音的經典轉換練習。",
+                content: [
+                { char: "四", pinyin: "sì" }, { char: "個", pinyin: "gè" }, { char: "四", pinyin: "sì" }, { char: "，", pinyin: "" }, { char: "四", pinyin: "sì" }, { char: "個", pinyin: "gè" }, { char: "十", pinyin: "shí" }, { char: "，", pinyin: "" },
+                { char: "四", pinyin: "sì" }, { char: "個", pinyin: "gè" }, { char: "十", pinyin: "shí" }, { char: "四", pinyin: "sì" }, { char: "，", pinyin: "" }, { char: "四", pinyin: "sì" }, { char: "個", pinyin: "gè" }, { char: "四", pinyin: "sì" }, { char: "十", pinyin: "shí" }, { char: "，", pinyin: "" },
+                { char: "四", pinyin: "sì" }, { char: "個", pinyin: "gè" }, { char: "四", pinyin: "sì" }, { char: "十", pinyin: "shí" }, { char: "四", pinyin: "sì" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 5,
+                title: "Level 5: 燉豆腐",
+                focus: "d / t (ㄉ De vs ㄊ Te)",
+                description: "舌尖中音的靈活度測試。",
+                content: [
+                { char: "你", pinyin: "nǐ" }, { char: "會", pinyin: "huì" }, { char: "燉", pinyin: "dùn" }, { char: "我", pinyin: "wǒ" }, { char: "的", pinyin: "de" }, { char: "燉", pinyin: "dùn" }, { char: "凍", pinyin: "dòng" }, { char: "豆", pinyin: "dòu" }, { char: "腐", pinyin: "fu" }, { char: "，", pinyin: "" },
+                { char: "來", pinyin: "lái" }, { char: "燉", pinyin: "dùn" }, { char: "我", pinyin: "wǒ" }, { char: "的", pinyin: "de" }, { char: "燉", pinyin: "dùn" }, { char: "凍", pinyin: "dòng" }, { char: "豆", pinyin: "dòu" }, { char: "腐", pinyin: "fu" }, { char: "。", pinyin: "" },
+                { char: "你", pinyin: "nǐ" }, { char: "不", pinyin: "bù" }, { char: "會", pinyin: "huì" }, { char: "燉", pinyin: "dùn" }, { char: "我", pinyin: "wǒ" }, { char: "的", pinyin: "de" }, { char: "燉", pinyin: "dùn" }, { char: "凍", pinyin: "dòng" }, { char: "豆", pinyin: "dòu" }, { char: "腐", pinyin: "fu" }, { char: "，", pinyin: "" },
+                { char: "別", pinyin: "bié" }, { char: "混", pinyin: "hùn" }, { char: "充", pinyin: "chōng" }, { char: "會", pinyin: "huì" }, { char: "燉", pinyin: "dùn" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 6,
+                title: "Level 6: 撕字紙",
+                focus: "z / zh / s (ㄗ Zi / ㄓ Zhi / ㄙ Si)",
+                description: "綜合練習：平舌、捲舌與送氣。",
+                content: [
+                { char: "隔", pinyin: "gé" }, { char: "著", pinyin: "zhe" }, { char: "窗", pinyin: "chuāng" }, { char: "撕", pinyin: "sī" }, { char: "字", pinyin: "zì" }, { char: "紙", pinyin: "zhǐ" }, { char: "，", pinyin: "" },
+                { char: "撕", pinyin: "sī" }, { char: "了", pinyin: "le" }, { char: "字", pinyin: "zì" }, { char: "紙", pinyin: "zhǐ" }, { char: "吃", pinyin: "chī" }, { char: "柿", pinyin: "shì" }, { char: "子", pinyin: "zi" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 7,
+                title: "Level 7: 灰雞與飛機",
+                focus: "h / f (ㄏ He vs ㄈ Fe)",
+                description: "唇齒音(f)與舌根音(h)的區辨。",
+                content: [
+                { char: "抱", pinyin: "bào" }, { char: "著", pinyin: "zhe" }, { char: "灰", pinyin: "huī" }, { char: "雞", pinyin: "jī" }, { char: "上", pinyin: "shàng" }, { char: "飛", pinyin: "fēi" }, { char: "機", pinyin: "jī" }, { char: "，", pinyin: "" },
+                { char: "飛", pinyin: "fēi" }, { char: "機", pinyin: "jī" }, { char: "起", pinyin: "qǐ" }, { char: "飛", pinyin: "fēi" }, { char: "灰", pinyin: "huī" }, { char: "雞", pinyin: "jī" }, { char: "要", pinyin: "yào" }, { char: "飛", pinyin: "fēi" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 8,
+                title: "Level 8: 蔣家羊",
+                focus: "j / q / x (ㄐ Ji / ㄑ Qi / ㄒ Xi)",
+                description: "舌面前音的練習。",
+                content: [
+                { char: "蔣", pinyin: "jiǎng" }, { char: "家", pinyin: "jiā" }, { char: "羊", pinyin: "yáng" }, { char: "，", pinyin: "" }, { char: "楊", pinyin: "yáng" }, { char: "家", pinyin: "jiā" }, { char: "牆", pinyin: "qiáng" }, { char: "，", pinyin: "" },
+                { char: "蔣", pinyin: "jiǎng" }, { char: "家", pinyin: "jiā" }, { char: "羊", pinyin: "yáng" }, { char: "撞", pinyin: "zhuàng" }, { char: "倒", pinyin: "dào" }, { char: "了", pinyin: "le" }, { char: "楊", pinyin: "yáng" }, { char: "家", pinyin: "jiā" }, { char: "牆", pinyin: "qiáng" }, { char: "。", pinyin: "" }
+                ]
+            },
+            {
+                id: 9,
+                title: "Final Challenge: 終極挑戰",
+                focus: "l / ü (ㄌ Le / ㄩ Yu)",
+                description: "邊音與圓唇元音的終極混合。",
+                content: [
+                { char: "紅", pinyin: "hóng" }, { char: "鯉", pinyin: "lǐ" }, { char: "魚", pinyin: "yú" }, { char: "與", pinyin: "yǔ" }, { char: "綠", pinyin: "lǜ" }, { char: "鯉", pinyin: "lǐ" }, { char: "魚", pinyin: "yú" }, { char: "與", pinyin: "yǔ" }, { char: "驢", pinyin: "lǘ" }, { char: "。", pinyin: "" }
+                ]
+            }
+        ];
+
+        // --- 主程式 ---
+        function TongueTwisterApp() {
+            const [currentLevel, setCurrentLevel] = useState(0);
+            const [showPinyin, setShowPinyin] = useState(true);
+            const [isCompleted, setIsCompleted] = useState(false);
+
+            const handleNext = () => {
+                if (currentLevel < levels.length - 1) {
+                    setCurrentLevel(prev => prev + 1);
+                } else {
+                    setIsCompleted(true);
+                }
+            };
+
+            const handlePrev = () => {
+                if (isCompleted) {
+                    setIsCompleted(false);
+                    return;
+                }
+                if (currentLevel > 0) {
+                    setCurrentLevel(prev => prev - 1);
+                }
+            };
+
+            const handleRestart = () => {
+                setCurrentLevel(0);
+                setIsCompleted(false);
+            };
+
+            const levelData = levels[currentLevel];
+
+            const colors = [
+                "from-pink-500 to-rose-500",
+                "from-purple-500 to-indigo-500",
+                "from-blue-500 to-cyan-500",
+                "from-teal-500 to-emerald-500",
+                "from-orange-500 to-amber-500",
+                "from-red-500 to-orange-600",
+                "from-indigo-600 to-blue-600",
+                "from-fuchsia-600 to-pink-600",
+                "from-rose-600 to-red-600"
+            ];
+
+            const currentGradient = isCompleted ? "from-yellow-400 to-orange-500" : colors[currentLevel % colors.length];
+
+            return (
+                <div className="min-h-screen flex flex-col items-center py-8 px-4">
+                
+                {/* Header */}
+                <header className="mb-8 text-center">
+                    <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600 mb-2">
+                    華語繞口令大挑戰
+                    </h1>
+                    <p className="text-gray-500 text-lg">Tongue Twister Challenge</p>
+                </header>
+
+                {/* Main Card */}
+                <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 relative">
+                    
+                    {/* Progress Bar */}
+                    {!isCompleted && (
+                    <div className="w-full bg-gray-100 h-2">
+                        <div 
+                        className={`h-full bg-gradient-to-r ${currentGradient} transition-all duration-500 ease-out`}
+                        style={{ width: `${((currentLevel + 1) / levels.length) * 100}%` }}
+                        />
+                    </div>
+                    )}
+
+                    <div className="p-8 md:p-12 min-h-[500px] flex flex-col justify-between">
+                    
+                    {isCompleted ? (
+                        // Completion Screen
+                        <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in text-center">
+                        <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500 mb-4">
+                            <Icons.Trophy size={48} fill="currentColor" />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-800 mb-2">挑戰成功！</h2>
+                            <p className="text-xl text-gray-600">Give yourself a round of applause!</p>
+                        </div>
+                        <div className="p-6 bg-yellow-50 rounded-xl border border-yellow-100">
+                            <p className="text-yellow-800">你已經完成了所有的繞口令練習，舌頭打結了嗎？</p>
+                        </div>
+                        <button 
+                            onClick={handleRestart}
+                            className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full font-bold shadow-lg hover:shadow-xl transform transition hover:-translate-y-1 active:translate-y-0"
+                        >
+                            <Icons.RotateCcw size={20} />
+                            <span>再挑戰一次</span>
+                        </button>
+                        </div>
+                    ) : (
+                        // Game Screen
+                        <>
+                        <div>
+                            {/* Level Header */}
+                            <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${currentGradient} mb-2`}>
+                                {levelData.title.split(":")[0]}
+                                </span>
+                                <h2 className="text-2xl font-bold text-gray-800">{levelData.title.split(":")[1]}</h2>
+                            </div>
+                            <button 
+                                onClick={() => setShowPinyin(!showPinyin)}
+                                className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                                title={showPinyin ? "隱藏拼音" : "顯示拼音"}
+                            >
+                                {showPinyin ? <Icons.Eye size={20} /> : <Icons.EyeOff size={20} />}
+                            </button>
+                            </div>
+
+                            {/* Focus Point */}
+                            <div className="mb-8 bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-start space-x-3">
+                            <Icons.Info className="text-blue-500 mt-1 flex-shrink-0" size={20} />
+                            <div>
+                                <h3 className="font-bold text-blue-800 mb-1">發音重點：{levelData.focus}</h3>
+                                <p className="text-blue-600 text-sm">{levelData.description}</p>
+                            </div>
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="flex flex-wrap justify-center gap-2 mb-8 content-start min-h-[160px]">
+                            {levelData.content.map((item, index) => (
+                                <div key={index} className="flex flex-col items-center mx-1">
+                                <span 
+                                    className={`text-sm text-gray-500 font-medium h-6 mb-1 transition-opacity duration-300 ${showPinyin ? 'opacity-100' : 'opacity-0'}`}
+                                >
+                                    {item.pinyin}
+                                </span>
+                                <span className="text-4xl md:text-5xl font-serif font-medium text-gray-800 leading-tight">
+                                    {item.char}
+                                </span>
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex justify-between items-center mt-auto pt-6 border-t border-gray-100">
+                            <button 
+                            onClick={handlePrev}
+                            disabled={currentLevel === 0}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                                currentLevel === 0 
+                                ? 'text-gray-300 cursor-not-allowed' 
+                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            }`}
+                            >
+                            <Icons.ChevronLeft size={20} />
+                            <span>上一關</span>
+                            </button>
+
+                            <div className="text-gray-400 text-sm font-medium">
+                            {currentLevel + 1} / {levels.length}
+                            </div>
+
+                            <button 
+                            onClick={handleNext}
+                            className={`flex items-center space-x-2 px-6 py-3 rounded-full text-white font-bold shadow-md transition-all transform hover:-translate-y-1 active:translate-y-0 bg-gradient-to-r ${currentGradient}`}
+                            >
+                            <span>{currentLevel === levels.length - 1 ? "完成挑戰" : "下一關"}</span>
+                            <Icons.ChevronRight size={20} />
+                            </button>
+                        </div>
+                        </>
+                    )}
+                    </div>
+                </div>
+
+                {/* Footer Instructions */}
+                <div className="mt-8 text-center text-gray-400 text-sm max-w-md">
+                    <p className="flex items-center justify-center gap-2">
+                    <Icons.Mic size={14} />
+                    <span>大聲朗讀出來效果最好喔！</span>
+                    </p>
+                </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TongueTwisterApp />);
+    </script>
+</body>
+</html>
